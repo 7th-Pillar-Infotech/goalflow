@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthForm } from '@/components/auth/auth-form';
-import { useAuth } from '@/hooks/use-auth';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { AuthForm } from "@/components/auth/auth-form";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function AuthPage() {
   const { user, loading } = useAuth();
@@ -11,7 +11,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      router.push("/dashboard");
     }
   }, [user, loading, router]);
 

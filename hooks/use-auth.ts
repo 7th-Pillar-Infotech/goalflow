@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { authService, type AuthUser } from '@/lib/auth';
+import { useState, useEffect } from "react";
+import { authService, type AuthUser } from "@/lib/auth";
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -14,7 +14,7 @@ export function useAuth() {
         const user = await authService.getUser();
         setUser(user);
       } catch (error) {
-        console.error('Error getting user:', error);
+        // Silent fail - user will be null
       } finally {
         setLoading(false);
       }
@@ -23,12 +23,17 @@ export function useAuth() {
     getInitialSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = authService.onAuthStateChange((user) => {
+    const { data } = authService.onAuthStateChange((user) => {
       setUser(user);
       setLoading(false);
     });
-
-    return () => subscription.unsubscribe();
+    
+    // Make sure subscription exists before trying to unsubscribe
+    return () => {
+      if (data && data.subscription) {
+        data.subscription.unsubscribe();
+      }
+    };
   }, []);
 
   return {

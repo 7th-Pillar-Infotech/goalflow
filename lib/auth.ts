@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import type { User } from '@supabase/supabase-js';
+import { supabase } from "./supabase";
+import type { User } from "@supabase/supabase-js";
 
 export interface AuthUser extends User {
   profile?: {
@@ -20,13 +20,11 @@ export const authService = {
 
     // Create profile after signup
     if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          email: data.user.email!,
-          full_name: fullName || null,
-        });
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: data.user.id,
+        email: data.user.email!,
+        full_name: fullName || null,
+      });
 
       if (profileError) throw profileError;
     }
@@ -50,38 +48,111 @@ export const authService = {
   },
 
   async getSession() {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
     if (error) throw error;
     return session;
   },
 
   async getUser(): Promise<AuthUser | null> {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    
-    if (!user) return null;
+    // Check if supabase client is initialized
+    if (!supabase) {
+      return null;
+    }
 
-    // Fetch profile data
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, avatar_url, role')
-      .eq('id', user.id)
-      .single();
+    // Check if auth is available on supabase
+    if (!supabase.auth) {
+      return null;
+    }
 
-    return {
-      ...user,
-      profile,
-    };
+    // Check if getUser method exists
+    if (typeof supabase.auth.getUser !== "function") {
+      return null;
+    }
+
+    try {
+      // Use a timeout to prevent hanging
+      const timeoutPromise = new Promise<null>((_, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error("Supabase auth.getUser timed out after 5 seconds")
+            ),
+          5000
+        );
+      });
+
+      // Race between the actual API call and the timeout
+      let response;
+      try {
+        response = (await Promise.race([
+          supabase.auth.getUser(),
+          timeoutPromise,
+        ])) as any;
+      } catch (apiError) {
+        return null;
+      }
+
+      // Check if response exists
+      if (!response) {
+        return null;
+      }
+
+      // Now safely extract the user and error
+      const data = response.data;
+      const error = response.error;
+
+      if (error) {
+        return null;
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      const user = data.user;
+
+      if (!user) {
+        return null;
+      }
+
+      // Fetch profile data
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, avatar_url, role")
+          .eq("id", user.id)
+          .single();
+
+        return {
+          ...user,
+          profile: profile || undefined,
+        };
+      } catch (profileError) {
+        // Return user even if profile fetch fails
+        return user;
+      }
+    } catch (error) {
+      return null;
+    }
   },
 
   onAuthStateChange(callback: (user: AuthUser | null) => void) {
-    return supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const user = await this.getUser();
-        callback(user);
-      } else {
+    const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        if (session?.user) {
+          const user = await this.getUser();
+          callback(user);
+        } else {
+          callback(null);
+        }
+      } catch (error) {
         callback(null);
       }
     });
+
+    return { data };
   },
 };
