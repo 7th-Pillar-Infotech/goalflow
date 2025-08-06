@@ -36,6 +36,7 @@ const navigation = [
   { name: 'Goals', href: '/dashboard/goals', icon: Target },
   { name: 'Tasks', href: '/dashboard/tasks', icon: CheckSquare },
   { name: 'Teams', href: '/dashboard/teams', icon: Users },
+  { name: 'Strategic Map', href: '/dashboard/strategic-map', icon: Target },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 

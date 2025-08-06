@@ -1,24 +1,44 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { CreateGoalModal } from '@/components/goals/create-goal-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Filter, Search, MoreHorizontal, Target, Users, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { goalsApi } from '@/lib/api/goals';
+import type { Goal } from '@/lib/types';
 
 export default function GoalsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth');
+    } else if (user) {
+      loadGoals();
     }
   }, [user, loading, router]);
+
+  const loadGoals = async () => {
+    try {
+      setIsLoading(true);
+      const userGoals = await goalsApi.getGoals();
+      setGoals(userGoals);
+    } catch (error) {
+      console.error('Error loading goals:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -31,42 +51,6 @@ export default function GoalsPage() {
   if (!user) {
     return null;
   }
-
-  const mockGoals = [
-    {
-      id: 1,
-      title: "Increase quarterly sales revenue from $1M to $1.3M",
-      description: "Focus on enterprise clients and improve conversion rates through better sales processes.",
-      type: "team",
-      status: "on_track",
-      progress: 78,
-      dueDate: "Dec 31, 2024",
-      team: "Sales Team",
-      tags: ["Revenue", "Sales", "Q4"]
-    },
-    {
-      id: 2,
-      title: "Launch new product feature for mobile app",
-      description: "Develop and deploy the highly requested dark mode feature across all mobile platforms.",
-      type: "team",
-      status: "at_risk",
-      progress: 45,
-      dueDate: "Nov 15, 2024",
-      team: "Product Team",
-      tags: ["Product", "Mobile", "Feature"]
-    },
-    {
-      id: 3,
-      title: "Complete professional certification in project management",
-      description: "Obtain PMP certification to enhance leadership skills and career advancement.",
-      type: "individual",
-      status: "on_track",
-      progress: 92,
-      dueDate: "Dec 15, 2024",
-      team: null,
-      tags: ["Personal", "Career", "Certification"]
-    }
-  ];
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -98,7 +82,7 @@ export default function GoalsPage() {
               <Filter className="w-4 h-4 mr-2" />
               Filter
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setShowCreateGoal(true)}>
               <Plus className="w-4 h-4 mr-2" />
               New Goal
             </Button>
@@ -106,75 +90,82 @@ export default function GoalsPage() {
         </div>
 
         {/* Goals Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {mockGoals.map((goal) => {
-            const statusBadge = getStatusBadge(goal.status);
-            
-            return (
-              <Card key={goal.id} className="hover:shadow-lg transition-shadow duration-200 cursor-pointer">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="p-1.5 rounded bg-blue-100 dark:bg-blue-900">
-                        {goal.type === 'team' ? (
-                          <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        ) : (
-                          <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        )}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {goals.map((goal) => {
+              const statusBadge = getStatusBadge(goal.status);
+              const completedSubgoals = goal.subgoals?.filter(sg => sg.status === 'completed').length || 0;
+              const totalSubgoals = goal.subgoals?.length || 0;
+              const progress = totalSubgoals > 0 ? Math.round((completedSubgoals / totalSubgoals) * 100) : 0;
+              
+              return (
+                <Card key={goal.id} className="hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="p-1.5 rounded bg-blue-100 dark:bg-blue-900">
+                          {goal.goal_type === 'team' ? (
+                            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          ) : (
+                            <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          )}
+                        </div>
+                        <Badge variant={statusBadge.variant}>{statusBadge.text}</Badge>
                       </div>
-                      <Badge variant={statusBadge.variant}>{statusBadge.text}</Badge>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
-                    {goal.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {goal.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{goal.progress}%</span>
+                    <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+                      {goal.title}
+                    </CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {goal.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Progress */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Progress</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{progress}%</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
                     </div>
-                    <Progress value={goal.progress} className="h-2" />
-                  </div>
 
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1">
-                    {goal.tags.map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      Due {goal.dueDate}
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1">
+                      {goal.tags.map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
                     </div>
-                    {goal.team && (
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700">
                       <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {goal.team}
+                        <Calendar className="w-4 h-4" />
+                        {goal.deadline ? `Due ${new Date(goal.deadline).toLocaleDateString()}` : 'No deadline'}
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      <div className="flex items-center gap-1">
+                        <Target className="w-4 h-4" />
+                        {totalSubgoals} sub-goals
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* Empty State for when there are no goals */}
-        {mockGoals.length === 0 && (
+        {!isLoading && goals.length === 0 && (
           <Card className="p-12 text-center">
             <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -183,12 +174,19 @@ export default function GoalsPage() {
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Get started by creating your first goal. Set objectives, track progress, and achieve success.
             </p>
-            <Button>
+            <Button onClick={() => setShowCreateGoal(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Your First Goal
             </Button>
           </Card>
         )}
+
+        {/* Create Goal Modal */}
+        <CreateGoalModal
+          open={showCreateGoal}
+          onOpenChange={setShowCreateGoal}
+          onGoalCreated={loadGoals}
+        />
       </div>
     </DashboardLayout>
   );

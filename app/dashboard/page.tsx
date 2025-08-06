@@ -5,13 +5,16 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { AnalyticsCards } from '@/components/dashboard/analytics-cards';
 import { ProgressChart } from '@/components/dashboard/progress-chart';
+import { CreateGoalModal } from '@/components/goals/create-goal-modal';
 import { Button } from '@/components/ui/button';
 import { Plus, Filter, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -53,7 +56,7 @@ export default function DashboardPage() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setShowCreateGoal(true)}>
               <Plus className="w-4 h-4 mr-2" />
               New Goal
             </Button>
@@ -65,6 +68,16 @@ export default function DashboardPage() {
 
         {/* Progress Charts */}
         <ProgressChart />
+
+        {/* Create Goal Modal */}
+        <CreateGoalModal
+          open={showCreateGoal}
+          onOpenChange={setShowCreateGoal}
+          onGoalCreated={() => {
+            // Refresh data or show success message
+            console.log('Goal created successfully!');
+          }}
+        />
       </div>
     </DashboardLayout>
   );
