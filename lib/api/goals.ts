@@ -1,5 +1,12 @@
-import { supabase } from '@/lib/supabase';
-import type { Goal, SubGoal, Task, GoalType, GoalStatus } from '@/lib/types';
+import { supabase } from "@/lib/supabase";
+import type {
+  Goal,
+  SubGoal,
+  Task,
+  GoalType,
+  GoalStatus,
+  Team,
+} from "@/lib/types";
 
 export const goalsApi = {
   // Create a new goal with subgoals and tasks
@@ -22,12 +29,15 @@ export const goalsApi = {
       }[];
     }[];
   }) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    console.log("goalData", goalData);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
 
     // Create the main goal
     const { data: goal, error: goalError } = await supabase
-      .from('goals')
+      .from("goals")
       .insert({
         title: goalData.title,
         description: goalData.description,
@@ -43,15 +53,18 @@ export const goalsApi = {
     if (goalError) throw goalError;
 
     // Create subgoals
-    const subgoalsToInsert = goalData.subgoals.map(subgoal => ({
+    const subgoalsToInsert = goalData.subgoals.map((subgoal) => ({
       goal_id: goal.id,
       title: subgoal.title,
       description: subgoal.description,
-      assigned_to: subgoal.assigned_to || (goalData.goal_type === 'individual' ? user.id : null),
+      status: "not_started", // Set default status for new subgoals
+      assigned_to:
+        subgoal.assigned_to ||
+        (goalData.goal_type === "individual" ? user.id : null),
     }));
 
     const { data: subgoals, error: subgoalsError } = await supabase
-      .from('subgoals')
+      .from("subgoals")
       .insert(subgoalsToInsert)
       .select();
 
@@ -62,21 +75,25 @@ export const goalsApi = {
     for (let i = 0; i < goalData.subgoals.length; i++) {
       const subgoal = subgoals[i];
       const subgoalData = goalData.subgoals[i];
-      
+
       for (const task of subgoalData.tasks) {
         tasksToInsert.push({
           subgoal_id: subgoal.id,
           title: task.title,
           description: task.description,
-          assigned_to: task.assigned_to || (goalData.goal_type === 'individual' ? user.id : null),
+          status: "not_started", // Set default status for new tasks
+          assigned_to:
+            task.assigned_to ||
+            (goalData.goal_type === "individual" ? user.id : null),
           due_date: task.due_date,
+          created_by: user.id,
         });
       }
     }
 
     if (tasksToInsert.length > 0) {
       const { error: tasksError } = await supabase
-        .from('tasks')
+        .from("tasks")
         .insert(tasksToInsert);
 
       if (tasksError) throw tasksError;
@@ -88,8 +105,9 @@ export const goalsApi = {
   // Get all goals for the current user
   async getGoals() {
     const { data: goals, error } = await supabase
-      .from('goals')
-      .select(`
+      .from("goals")
+      .select(
+        `
         *,
         subgoals (
           *,
@@ -107,8 +125,9 @@ export const goalsApi = {
             )
           )
         )
-      `)
-      .order('created_at', { ascending: false });
+      `
+      )
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return goals as Goal[];
@@ -117,8 +136,9 @@ export const goalsApi = {
   // Get a specific goal with all its subgoals and tasks
   async getGoal(goalId: string) {
     const { data: goal, error } = await supabase
-      .from('goals')
-      .select(`
+      .from("goals")
+      .select(
+        `
         *,
         subgoals (
           *,
@@ -136,8 +156,9 @@ export const goalsApi = {
             )
           )
         )
-      `)
-      .eq('id', goalId)
+      `
+      )
+      .eq("id", goalId)
       .single();
 
     if (error) throw error;
@@ -147,9 +168,9 @@ export const goalsApi = {
   // Update goal status
   async updateGoalStatus(goalId: string, status: GoalStatus) {
     const { error } = await supabase
-      .from('goals')
+      .from("goals")
       .update({ status })
-      .eq('id', goalId);
+      .eq("id", goalId);
 
     if (error) throw error;
   },
@@ -157,9 +178,9 @@ export const goalsApi = {
   // Update subgoal status
   async updateSubGoalStatus(subgoalId: string, status: GoalStatus) {
     const { error } = await supabase
-      .from('subgoals')
+      .from("subgoals")
       .update({ status })
-      .eq('id', subgoalId);
+      .eq("id", subgoalId);
 
     if (error) throw error;
   },
@@ -167,19 +188,16 @@ export const goalsApi = {
   // Update task status
   async updateTaskStatus(taskId: string, status: GoalStatus) {
     const { error } = await supabase
-      .from('tasks')
+      .from("tasks")
       .update({ status })
-      .eq('id', taskId);
+      .eq("id", taskId);
 
     if (error) throw error;
   },
 
   // Delete a goal (cascades to subgoals and tasks)
   async deleteGoal(goalId: string) {
-    const { error } = await supabase
-      .from('goals')
-      .delete()
-      .eq('id', goalId);
+    const { error } = await supabase.from("goals").delete().eq("id", goalId);
 
     if (error) throw error;
   },
@@ -187,38 +205,37 @@ export const goalsApi = {
   // Get team members for assignment
   async getTeamMembers(teamId: string) {
     const { data: members, error } = await supabase
-      .from('team_members')
-      .select(`
+      .from("team_members")
+      .select(
+        `
         user_id,
         user:user_id (
           id,
           full_name,
           email
         )
-      `)
-      .eq('team_id', teamId);
+      `
+      )
+      .eq("team_id", teamId);
 
     if (error) throw error;
-    return members.map(member => member.user).filter(Boolean);
+    return members.map((member) => member.user).filter(Boolean);
   },
 
   // Get user's teams
   async getUserTeams() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
 
-    const { data: teams, error } = await supabase
-      .from('team_members')
-      .select(`
-        team:team_id (
-          id,
-          name,
-          description
-        )
-      `)
-      .eq('user_id', user.id);
+    const { data: teamMembers, error } = await supabase
+      .from("teams")
+      .select("*")
+      .eq("owner_id", user.id);
 
     if (error) throw error;
-    return teams.map(item => item.team).filter(Boolean);
+
+    return teamMembers as Team[];
   },
 };
