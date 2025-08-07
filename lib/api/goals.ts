@@ -111,18 +111,8 @@ export const goalsApi = {
         *,
         subgoals (
           *,
-          assignee:assigned_to (
-            id,
-            full_name,
-            email
-          ),
           tasks (
-            *,
-            assignee:assigned_to (
-              id,
-              full_name,
-              email
-            )
+            *
           )
         )
       `
@@ -142,18 +132,8 @@ export const goalsApi = {
         *,
         subgoals (
           *,
-          assignee:assigned_to (
-            id,
-            full_name,
-            email
-          ),
           tasks (
-            *,
-            assignee:assigned_to (
-              id,
-              full_name,
-              email
-            )
+            *
           )
         )
       `

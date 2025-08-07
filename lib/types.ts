@@ -1,5 +1,5 @@
-export type GoalType = 'individual' | 'team';
-export type GoalStatus = 'not_started' | 'on_track' | 'at_risk' | 'completed';
+export type GoalType = "individual" | "team";
+export type GoalStatus = "not_started" | "on_track" | "at_risk" | "completed";
 
 export interface Goal {
   id: string;
@@ -34,6 +34,7 @@ export interface SubGoal {
 }
 
 export interface Task {
+  priority: string;
   id: string;
   subgoal_id: string;
   title: string;
