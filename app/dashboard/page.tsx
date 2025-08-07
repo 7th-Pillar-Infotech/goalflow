@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { AnalyticsCards } from '@/components/dashboard/analytics-cards';
-import { ProgressChart } from '@/components/dashboard/progress-chart';
-import { CreateGoalModal } from '@/components/goals/create-goal-modal';
-import { Button } from '@/components/ui/button';
-import { Plus, Filter, Download } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useState } from 'react';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { AnalyticsCards } from "@/components/dashboard/analytics-cards";
+import { ProgressChart } from "@/components/dashboard/progress-chart";
+import { CreateGoalModal } from "@/components/goals/create-goal-modal";
+import { Button } from "@/components/ui/button";
+import { Plus, Filter, Download } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/auth');
+      router.push("/auth");
     }
   }, [user, loading, router]);
 
@@ -41,7 +41,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Welcome back, {user.profile?.full_name || 'User'}!
+              Welcome back !
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
               Here's what's happening with your goals this week.
@@ -75,7 +75,7 @@ export default function DashboardPage() {
           onOpenChange={setShowCreateGoal}
           onGoalCreated={() => {
             // Refresh data or show success message
-            console.log('Goal created successfully!');
+            console.log("Goal created successfully!");
           }}
         />
       </div>
