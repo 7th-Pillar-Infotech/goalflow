@@ -209,13 +209,28 @@ export const goalsApi = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const { data: teamMembers, error } = await supabase
+    const { data: teams, error } = await supabase
       .from("teams")
       .select("*")
-      .eq("owner_id", user.id);
+      .or(`owner_id.eq.${user.id},id.in.(${await this.getUserTeamIds()})`);
 
     if (error) throw error;
 
-    return teamMembers as Team[];
+    return teams as Team[];
+  },
+
+  // Helper function to get user's team IDs
+  async getUserTeamIds() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return "";
+
+    const { data: teamMembers } = await supabase
+      .from("team_members")
+      .select("team_id")
+      .eq("user_id", user.id);
+
+    return teamMembers?.map((tm) => tm.team_id).join(",") || "";
   },
 };

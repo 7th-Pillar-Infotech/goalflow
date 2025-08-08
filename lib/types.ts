@@ -58,6 +58,7 @@ export interface Team {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  team_members?: TeamMember[];
 }
 
 export interface TeamMember {
@@ -70,6 +71,7 @@ export interface TeamMember {
     id: string;
     full_name: string;
     email: string;
+    avatar_url?: string;
   };
 }
 
