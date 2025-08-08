@@ -68,7 +68,7 @@ export default function GoalsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      on_track: { variant: "default" as const, text: "On Track" },
+      in_progress: { variant: "default" as const, text: "On Track" },
       at_risk: { variant: "destructive" as const, text: "At Risk" },
       completed: { variant: "secondary" as const, text: "Completed" },
       not_started: { variant: "outline" as const, text: "Not Started" },

@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  Filter, 
-  Search, 
-  Target, 
-  Users, 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  ZoomIn,
+  ZoomOut,
+  Filter,
+  Search,
+  Target,
+  Users,
   Plus,
   Minus,
-  RotateCcw
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+  RotateCcw,
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function StrategicMapPage() {
   const { user, loading } = useAuth();
@@ -27,7 +27,7 @@ export default function StrategicMapPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/auth');
+      router.push("/auth");
     }
   }, [user, loading, router]);
 
@@ -45,90 +45,125 @@ export default function StrategicMapPage() {
 
   // Mock strategic map data
   const companyGoal = {
-    id: 'company-1',
-    title: 'Squarepoint.io OKRs Q4 2024',
-    description: 'Achieve 40% revenue growth and expand market presence',
+    id: "company-1",
+    title: "Squarepoint.io OKRs Q4 2024",
+    description: "Achieve 40% revenue growth and expand market presence",
     progress: 72,
-    status: 'on_track',
+    status: "in_progress",
     departments: [
       {
-        id: 'sales-dept',
-        name: 'Sales Department',
+        id: "sales-dept",
+        name: "Sales Department",
         progress: 85,
-        status: 'on_track',
+        status: "in_progress",
         goals: [
           {
-            id: 'sales-goal-1',
-            title: 'Increase quarterly sales revenue from $1M to $1.3M',
+            id: "sales-goal-1",
+            title: "Increase quarterly sales revenue from $1M to $1.3M",
             progress: 78,
-            status: 'on_track',
-            owner: 'Sarah Chen',
+            status: "in_progress",
+            owner: "Sarah Chen",
             subgoals: [
-              { id: 'sg1', title: 'Improve lead generation by 40%', progress: 85, assignee: 'John Smith' },
-              { id: 'sg2', title: 'Increase conversion rate to 25%', progress: 70, assignee: 'Maria Garcia' }
-            ]
-          }
-        ]
+              {
+                id: "sg1",
+                title: "Improve lead generation by 40%",
+                progress: 85,
+                assignee: "John Smith",
+              },
+              {
+                id: "sg2",
+                title: "Increase conversion rate to 25%",
+                progress: 70,
+                assignee: "Maria Garcia",
+              },
+            ],
+          },
+        ],
       },
       {
-        id: 'product-dept',
-        name: 'Product Department',
+        id: "product-dept",
+        name: "Product Department",
         progress: 65,
-        status: 'at_risk',
+        status: "at_risk",
         goals: [
           {
-            id: 'product-goal-1',
-            title: 'Launch new mobile features',
+            id: "product-goal-1",
+            title: "Launch new mobile features",
             progress: 45,
-            status: 'at_risk',
-            owner: 'Marcus Johnson',
+            status: "at_risk",
+            owner: "Marcus Johnson",
             subgoals: [
-              { id: 'sg3', title: 'Design dark mode UI', progress: 90, assignee: 'Lisa Rodriguez' },
-              { id: 'sg4', title: 'Implement push notifications', progress: 20, assignee: 'David Kim' }
-            ]
-          }
-        ]
+              {
+                id: "sg3",
+                title: "Design dark mode UI",
+                progress: 90,
+                assignee: "Lisa Rodriguez",
+              },
+              {
+                id: "sg4",
+                title: "Implement push notifications",
+                progress: 20,
+                assignee: "David Kim",
+              },
+            ],
+          },
+        ],
       },
       {
-        id: 'marketing-dept',
-        name: 'Marketing Department',
+        id: "marketing-dept",
+        name: "Marketing Department",
         progress: 92,
-        status: 'ahead',
+        status: "ahead",
         goals: [
           {
-            id: 'marketing-goal-1',
-            title: 'Increase brand awareness by 60%',
+            id: "marketing-goal-1",
+            title: "Increase brand awareness by 60%",
             progress: 92,
-            status: 'on_track',
-            owner: 'Emily Watson',
+            status: "in_progress",
+            owner: "Emily Watson",
             subgoals: [
-              { id: 'sg5', title: 'Launch social media campaign', progress: 100, assignee: 'Alex Thompson' },
-              { id: 'sg6', title: 'Increase website traffic by 50%', progress: 85, assignee: 'Jessica Lee' }
-            ]
-          }
-        ]
-      }
-    ]
+              {
+                id: "sg5",
+                title: "Launch social media campaign",
+                progress: 100,
+                assignee: "Alex Thompson",
+              },
+              {
+                id: "sg6",
+                title: "Increase website traffic by 50%",
+                progress: 85,
+                assignee: "Jessica Lee",
+              },
+            ],
+          },
+        ],
+      },
+    ],
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'on_track': return 'bg-emerald-500';
-      case 'at_risk': return 'bg-orange-500';
-      case 'ahead': return 'bg-blue-500';
-      case 'completed': return 'bg-green-600';
-      default: return 'bg-gray-500';
+      case "in_progress":
+        return "bg-emerald-500";
+      case "at_risk":
+        return "bg-orange-500";
+      case "ahead":
+        return "bg-blue-500";
+      case "completed":
+        return "bg-green-600";
+      default:
+        return "bg-gray-500";
     }
   };
 
   const getStatusBadge = (status: string) => {
     const config = {
-      on_track: { variant: 'default' as const, text: 'On Track' },
-      at_risk: { variant: 'destructive' as const, text: 'At Risk' },
-      ahead: { variant: 'secondary' as const, text: 'Ahead' },
-      completed: { variant: 'outline' as const, text: 'Completed' },
+      in_progress: { variant: "default" as const, text: "On Track" },
+      at_risk: { variant: "destructive" as const, text: "At Risk" },
+      ahead: { variant: "secondary" as const, text: "Ahead" },
+      completed: { variant: "outline" as const, text: "Completed" },
     };
-    return config[status as keyof typeof config] || config.on_track;
+    return config[status as keyof typeof config] || config.in_progress;
   };
 
   return (
@@ -137,7 +172,9 @@ export default function StrategicMapPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Strategic Map</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Strategic Map
+            </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
               Visual hierarchy of organizational objectives and key results.
             </p>
@@ -186,7 +223,7 @@ export default function StrategicMapPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-sm">
                   <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
@@ -208,9 +245,12 @@ export default function StrategicMapPage() {
         {/* Strategic Map Canvas */}
         <Card className="min-h-[600px]">
           <CardContent className="p-6">
-            <div 
+            <div
               className="strategic-map-canvas relative overflow-auto"
-              style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' }}
+              style={{
+                transform: `scale(${zoomLevel / 100})`,
+                transformOrigin: "top left",
+              }}
             >
               {/* Company Goal - Central Node */}
               <div className="flex flex-col items-center space-y-8">
@@ -222,7 +262,9 @@ export default function StrategicMapPage() {
                       </div>
                       <Badge variant="secondary">Company OKR</Badge>
                     </div>
-                    <CardTitle className="text-lg">{companyGoal.title}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {companyGoal.title}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
@@ -231,7 +273,9 @@ export default function StrategicMapPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Overall Progress</span>
-                        <span className="font-medium">{companyGoal.progress}%</span>
+                        <span className="font-medium">
+                          {companyGoal.progress}%
+                        </span>
                       </div>
                       <Progress value={companyGoal.progress} className="h-2" />
                     </div>
@@ -243,14 +287,20 @@ export default function StrategicMapPage() {
                   {companyGoal.departments.map((dept, deptIndex) => (
                     <div key={dept.id} className="space-y-4">
                       {/* Department Header */}
-                      <Card className={`border-l-4 ${getStatusColor(dept.status)}`}>
+                      <Card
+                        className={`border-l-4 ${getStatusColor(dept.status)}`}
+                      >
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Users className="w-5 h-5" />
-                              <CardTitle className="text-base">{dept.name}</CardTitle>
+                              <CardTitle className="text-base">
+                                {dept.name}
+                              </CardTitle>
                             </div>
-                            <Badge variant={getStatusBadge(dept.status).variant}>
+                            <Badge
+                              variant={getStatusBadge(dept.status).variant}
+                            >
                               {getStatusBadge(dept.status).text}
                             </Badge>
                           </div>
@@ -259,7 +309,9 @@ export default function StrategicMapPage() {
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span>Department Progress</span>
-                              <span className="font-medium">{dept.progress}%</span>
+                              <span className="font-medium">
+                                {dept.progress}%
+                              </span>
                             </div>
                             <Progress value={dept.progress} className="h-2" />
                           </div>
@@ -268,25 +320,38 @@ export default function StrategicMapPage() {
 
                       {/* Department Goals */}
                       {dept.goals.map((goal) => (
-                        <Card key={goal.id} className="ml-4 border-l-2 border-gray-200 dark:border-gray-700">
+                        <Card
+                          key={goal.id}
+                          className="ml-4 border-l-2 border-gray-200 dark:border-gray-700"
+                        >
                           <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                               <CardTitle className="text-sm font-medium line-clamp-2">
                                 {goal.title}
                               </CardTitle>
-                              <Badge variant={getStatusBadge(goal.status).variant} className="text-xs">
+                              <Badge
+                                variant={getStatusBadge(goal.status).variant}
+                                className="text-xs"
+                              >
                                 {getStatusBadge(goal.status).text}
                               </Badge>
                             </div>
-                            <p className="text-xs text-gray-500">Owner: {goal.owner}</p>
+                            <p className="text-xs text-gray-500">
+                              Owner: {goal.owner}
+                            </p>
                           </CardHeader>
                           <CardContent className="space-y-3">
                             <div className="space-y-2">
                               <div className="flex justify-between text-xs">
                                 <span>Progress</span>
-                                <span className="font-medium">{goal.progress}%</span>
+                                <span className="font-medium">
+                                  {goal.progress}%
+                                </span>
                               </div>
-                              <Progress value={goal.progress} className="h-1.5" />
+                              <Progress
+                                value={goal.progress}
+                                className="h-1.5"
+                              />
                             </div>
 
                             {/* Sub-goals */}
@@ -295,13 +360,25 @@ export default function StrategicMapPage() {
                                 Key Results:
                               </p>
                               {goal.subgoals.map((subgoal) => (
-                                <div key={subgoal.id} className="bg-gray-50 dark:bg-gray-800 rounded p-2 space-y-1">
+                                <div
+                                  key={subgoal.id}
+                                  className="bg-gray-50 dark:bg-gray-800 rounded p-2 space-y-1"
+                                >
                                   <div className="flex items-center justify-between">
-                                    <p className="text-xs font-medium line-clamp-1">{subgoal.title}</p>
-                                    <span className="text-xs text-gray-500">{subgoal.progress}%</span>
+                                    <p className="text-xs font-medium line-clamp-1">
+                                      {subgoal.title}
+                                    </p>
+                                    <span className="text-xs text-gray-500">
+                                      {subgoal.progress}%
+                                    </span>
                                   </div>
-                                  <Progress value={subgoal.progress} className="h-1" />
-                                  <p className="text-xs text-gray-500">Assigned: {subgoal.assignee}</p>
+                                  <Progress
+                                    value={subgoal.progress}
+                                    className="h-1"
+                                  />
+                                  <p className="text-xs text-gray-500">
+                                    Assigned: {subgoal.assignee}
+                                  </p>
                                 </div>
                               ))}
                             </div>

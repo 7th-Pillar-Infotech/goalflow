@@ -9,7 +9,7 @@
 
   2. Enums
     - `goal_type` - individual or team
-    - `goal_status` - not_started, on_track, at_risk, completed
+    - `goal_status` - not_started, in_progress, at_risk, completed
 
   3. Security
     - Enable RLS on all tables
@@ -22,7 +22,7 @@
 
 -- Create custom types
 CREATE TYPE goal_type AS ENUM ('individual', 'team');
-CREATE TYPE goal_status AS ENUM ('not_started', 'on_track', 'at_risk', 'completed');
+CREATE TYPE goal_status AS ENUM ('not_started', 'in_progress', 'at_risk', 'completed');
 
 -- Goals table
 CREATE TABLE IF NOT EXISTS goals (

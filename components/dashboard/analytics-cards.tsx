@@ -85,7 +85,7 @@ function AnalyticsCard({
 interface GoalProgressCardProps {
   title: string;
   progress: number;
-  status: "on_track" | "at_risk" | "completed" | "not_started";
+  status: GoalStatus;
   dueDate: string;
   team?: string;
 }
@@ -98,7 +98,7 @@ function GoalProgressCard({
   team,
 }: GoalProgressCardProps) {
   const statusConfig = {
-    on_track: {
+    in_progress: {
       color: "bg-emerald-500",
       text: "On Track",
       variant: "default" as const,
@@ -118,9 +118,27 @@ function GoalProgressCard({
       text: "Not Started",
       variant: "outline" as const,
     },
+    // Add support for other statuses from our Goal type
+    in_progress: {
+      color: "bg-blue-500",
+      text: "In Progress",
+      variant: "default" as const,
+    },
+    blocked: {
+      color: "bg-red-500",
+      text: "Blocked",
+      variant: "destructive" as const,
+    },
   };
 
-  const config = statusConfig[status];
+  // Use a default config if the status doesn't match any known status
+  const config = statusConfig[status] || {
+    color: "bg-gray-500",
+    text: status
+      ? status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+      : "Unknown",
+    variant: "outline" as const,
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
@@ -226,7 +244,7 @@ export function AnalyticsCards() {
       (goal) => goal.status === "at_risk"
     ).length;
     const onTrackGoals = goals.filter(
-      (goal) => goal.status === "on_track"
+      (goal) => goal.status === "in_progress"
     ).length;
 
     // Calculate completion rate
@@ -299,7 +317,7 @@ export function AnalyticsCards() {
         progress = Math.round((completedSubgoals / goal.subgoals.length) * 100);
       } else if (goal.status === "completed") {
         progress = 100;
-      } else if (goal.status === "on_track") {
+      } else if (goal.status === "in_progress") {
         progress = 70;
       } else if (goal.status === "at_risk") {
         progress = 40;

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -42,8 +42,8 @@ export type Database = {
           id: string;
           title: string;
           description: string | null;
-          type: 'individual' | 'team';
-          status: 'not_started' | 'on_track' | 'at_risk' | 'completed';
+          type: "individual" | "team";
+          status: "not_started" | "in_progress" | "at_risk" | "completed";
           progress: number;
           target_date: string | null;
           tags: string[] | null;
@@ -56,8 +56,8 @@ export type Database = {
           id?: string;
           title: string;
           description?: string | null;
-          type: 'individual' | 'team';
-          status?: 'not_started' | 'on_track' | 'at_risk' | 'completed';
+          type: "individual" | "team";
+          status?: "not_started" | "in_progress" | "at_risk" | "completed";
           progress?: number;
           target_date?: string | null;
           tags?: string[] | null;
@@ -70,8 +70,8 @@ export type Database = {
           id?: string;
           title?: string;
           description?: string | null;
-          type?: 'individual' | 'team';
-          status?: 'not_started' | 'on_track' | 'at_risk' | 'completed';
+          type?: "individual" | "team";
+          status?: "not_started" | "in_progress" | "at_risk" | "completed";
           progress?: number;
           target_date?: string | null;
           tags?: string[] | null;
@@ -87,8 +87,8 @@ export type Database = {
           subgoal_id: string;
           title: string;
           description: string | null;
-          status: 'not_started' | 'in_progress' | 'blocked' | 'completed';
-          priority: 'low' | 'medium' | 'high';
+          status: "not_started" | "in_progress" | "blocked" | "completed";
+          priority: "low" | "medium" | "high";
           due_date: string | null;
           assigned_to: string | null;
           created_by: string;

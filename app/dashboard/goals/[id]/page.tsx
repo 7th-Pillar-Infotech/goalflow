@@ -89,7 +89,7 @@ export default function GoalDetailPage() {
     switch (status) {
       case "completed":
         return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case "on_track":
+      case "in_progress":
         return <PlayCircle className="w-4 h-4 text-blue-600" />;
       case "in_progress":
         return <PlayCircle className="w-4 h-4 text-blue-600" />;
@@ -110,7 +110,7 @@ export default function GoalDetailPage() {
         color:
           "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
       },
-      on_track: {
+      in_progress: {
         variant: "secondary" as const,
         text: "On Track",
         color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",

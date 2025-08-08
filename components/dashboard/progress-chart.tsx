@@ -55,7 +55,7 @@ const COLORS = ["#10B981", "#3B82F6", "#F59E0B", "#6B7280"];
 // Status color mapping
 const STATUS_COLORS: Record<string, string> = {
   completed: "#10B981",
-  on_track: "#3B82F6",
+  in_progress: "#3B82F6",
   at_risk: "#F59E0B",
   not_started: "#6B7280",
 };
@@ -100,7 +100,7 @@ export function ProgressChart() {
       return {
         week,
         completed: weekGoals.filter((g) => g.status === "completed").length,
-        inProgress: weekGoals.filter((g) => g.status === "on_track").length,
+        inProgress: weekGoals.filter((g) => g.status === "in_progress").length,
         atRisk: weekGoals.filter((g) => g.status === "at_risk").length,
       };
     });
@@ -161,7 +161,7 @@ export function ProgressChart() {
             (g) => g.status === "completed"
           ).length;
           const onTrackGoals = deptGoals.filter(
-            (g) => g.status === "on_track"
+            (g) => g.status === "in_progress"
           ).length;
 
           // Calculate weighted progress
@@ -184,7 +184,7 @@ export function ProgressChart() {
     if (!goals || goals.length === 0) {
       return [
         { name: "Completed", value: 0, color: STATUS_COLORS.completed },
-        { name: "On Track", value: 0, color: STATUS_COLORS.on_track },
+        { name: "On Track", value: 0, color: STATUS_COLORS.in_progress },
         { name: "At Risk", value: 0, color: STATUS_COLORS.at_risk },
         { name: "Not Started", value: 0, color: STATUS_COLORS.not_started },
       ];
@@ -192,13 +192,13 @@ export function ProgressChart() {
 
     // Count goals by status
     const completed = goals.filter((g) => g.status === "completed").length;
-    const onTrack = goals.filter((g) => g.status === "on_track").length;
+    const onTrack = goals.filter((g) => g.status === "in_progress").length;
     const atRisk = goals.filter((g) => g.status === "at_risk").length;
     const notStarted = goals.filter((g) => g.status === "not_started").length;
 
     return [
       { name: "Completed", value: completed, color: STATUS_COLORS.completed },
-      { name: "On Track", value: onTrack, color: STATUS_COLORS.on_track },
+      { name: "On Track", value: onTrack, color: STATUS_COLORS.in_progress },
       { name: "At Risk", value: atRisk, color: STATUS_COLORS.at_risk },
       {
         name: "Not Started",

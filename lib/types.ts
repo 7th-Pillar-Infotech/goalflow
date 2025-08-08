@@ -1,5 +1,11 @@
 export type GoalType = "individual" | "team";
-export type GoalStatus = "not_started" | "in_progress" | "blocked" | "on_track" | "at_risk" | "completed";
+export type GoalStatus =
+  | "not_started"
+  | "in_progress"
+  | "blocked"
+  | "in_progress"
+  | "at_risk"
+  | "completed";
 
 export interface WeeklySummary {
   text: string;
