@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { format } from "date-fns";
 import { goalsApi } from "@/lib/api/goals";
-import type { Goal, GoalStatus } from "@/lib/types";
+import { aiApi } from "@/lib/api/ai";
+import type { Goal, GoalStatus, WeeklySummary } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
@@ -58,6 +59,10 @@ export default function GoalDetailPage() {
     title: string;
     status: GoalStatus;
   } | null>(null);
+  const [currentSummary, setCurrentSummary] = useState<WeeklySummary | null>(
+    null
+  );
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -159,10 +164,99 @@ export default function GoalDetailPage() {
     );
   };
 
+  // Helper function to determine status based on child items (works for both subgoals and tasks)
+  const determineStatus = (items: any[]) => {
+    if (!items || items.length === 0) return "not_started";
+
+    // If all items are completed, status is completed
+    if (items.every((item) => item.status === "completed")) {
+      return "completed";
+    }
+
+    // If any item is in_progress, status is in_progress
+    if (items.some((item) => item.status === "in_progress")) {
+      return "in_progress";
+    }
+
+    // If any item is blocked, status is blocked
+    if (items.some((item) => item.status === "blocked")) {
+      return "blocked";
+    }
+
+    // If any item is at_risk, status is at_risk
+    if (items.some((item) => item.status === "at_risk")) {
+      return "at_risk";
+    }
+
+    // If we have some completed items but not all, mark as in_progress
+    if (items.some((item) => item.status === "completed")) {
+      return "in_progress";
+    }
+
+    // Default to not_started
+    return "not_started";
+  };
+
+  // Helper function to determine subgoal status based on its tasks
+  const determineSubgoalStatus = (tasks: any[]) => {
+    return determineStatus(tasks);
+  };
+
+  // Helper function to determine goal status based on its subgoals
+  const determineGoalStatus = (subgoals: any[]) => {
+    return determineStatus(subgoals);
+  };
+
+  // Find subgoal by task ID
+  const findSubgoalByTaskId = (taskId: string) => {
+    if (!goal || !goal.subgoals) return null;
+
+    for (const subgoal of goal.subgoals) {
+      if (subgoal.tasks && subgoal.tasks.some((task) => task.id === taskId)) {
+        return subgoal;
+      }
+    }
+    return null;
+  };
+
   const handleTaskStatusChange = async (taskId: string, checked: boolean) => {
     try {
       const newStatus = checked ? "completed" : "not_started";
       await goalsApi.updateTaskStatus(taskId, newStatus);
+
+      // Find the subgoal this task belongs to
+      const subgoal = findSubgoalByTaskId(taskId);
+      if (subgoal && subgoal.tasks) {
+        // Create a copy of the subgoal's tasks with the updated task status
+        const updatedTasks = subgoal.tasks.map((task) =>
+          task.id === taskId ? { ...task, status: newStatus } : task
+        );
+
+        // Determine the new subgoal status based on its tasks
+        const newSubgoalStatus = determineSubgoalStatus(updatedTasks);
+
+        // Only update if the status has changed
+        if (newSubgoalStatus !== subgoal.status) {
+          await goalsApi.updateSubGoalStatus(subgoal.id, newSubgoalStatus);
+
+          // After updating the subgoal, update the parent goal status
+          if (goal && goal.subgoals) {
+            // Create a copy of the subgoals with the updated status
+            const updatedSubgoals = goal.subgoals.map((sg) =>
+              sg.id === subgoal.id ? { ...sg, status: newSubgoalStatus } : sg
+            );
+
+            // Determine the new goal status based on its subgoals
+            const newGoalStatus = determineGoalStatus(updatedSubgoals);
+
+            // Only update if the status has changed
+            if (newGoalStatus !== goal.status) {
+              await goalsApi.updateGoalStatus(goal.id, newGoalStatus);
+            }
+          }
+        }
+      }
+
       await loadGoal(); // Refresh the goal data
     } catch (error) {
       console.error("Error updating task status:", error);
@@ -188,10 +282,60 @@ export default function GoalDetailPage() {
   ) => {
     try {
       await goalsApi.updateTaskWithComment(taskId, status, comment);
+
+      // Find the subgoal this task belongs to
+      const subgoal = findSubgoalByTaskId(taskId);
+      if (subgoal && subgoal.tasks) {
+        // Create a copy of the subgoal's tasks with the updated task status
+        const updatedTasks = subgoal.tasks.map((task) =>
+          task.id === taskId ? { ...task, status } : task
+        );
+
+        // Determine the new subgoal status based on its tasks
+        const newSubgoalStatus = determineSubgoalStatus(updatedTasks);
+
+        // Only update if the status has changed
+        if (newSubgoalStatus !== subgoal.status) {
+          await goalsApi.updateSubGoalStatus(subgoal.id, newSubgoalStatus);
+
+          // After updating the subgoal, update the parent goal status
+          if (goal && goal.subgoals) {
+            // Create a copy of the subgoals with the updated status
+            const updatedSubgoals = goal.subgoals.map((sg) =>
+              sg.id === subgoal.id ? { ...sg, status: newSubgoalStatus } : sg
+            );
+
+            // Determine the new goal status based on its subgoals
+            const newGoalStatus = determineGoalStatus(updatedSubgoals);
+
+            // Only update if the status has changed
+            if (newGoalStatus !== goal.status) {
+              await goalsApi.updateGoalStatus(goal.id, newGoalStatus);
+            }
+          }
+        }
+      }
+
       await loadGoal(); // Refresh the goal data
     } catch (error) {
       console.error("Error updating task with comment:", error);
       throw error;
+    }
+  };
+
+  const updateGoalStatus = async () => {
+    if (!goal || !goal.subgoals || goal.subgoals.length === 0) return;
+
+    // Determine the new goal status based on its subgoals
+    const newGoalStatus = determineGoalStatus(goal.subgoals);
+
+    // Only update if the status has changed
+    if (newGoalStatus !== goal.status) {
+      try {
+        await goalsApi.updateGoalStatus(goal.id, newGoalStatus);
+      } catch (error) {
+        console.error("Error updating goal status:", error);
+      }
     }
   };
 
@@ -201,9 +345,63 @@ export default function GoalDetailPage() {
   ) => {
     try {
       await goalsApi.updateSubGoalStatus(subgoalId, status);
+
+      // After updating the subgoal, update the parent goal status
+      if (goal && goal.subgoals) {
+        // Create a copy of the subgoals with the updated status
+        const updatedSubgoals = goal.subgoals.map((subgoal) =>
+          subgoal.id === subgoalId ? { ...subgoal, status } : subgoal
+        );
+
+        // Determine the new goal status based on its subgoals
+        const newGoalStatus = determineGoalStatus(updatedSubgoals);
+
+        // Only update if the status has changed
+        if (newGoalStatus !== goal.status) {
+          await goalsApi.updateGoalStatus(goal.id, newGoalStatus);
+        }
+      }
+
       await loadGoal(); // Refresh the goal data
     } catch (error) {
       console.error("Error updating subgoal status:", error);
+    }
+  };
+
+  const handleGenerateWeeklySummary = async () => {
+    if (!goal) return;
+
+    try {
+      setIsGeneratingSummary(true);
+      // Generate the summary using AI
+      const summary = await aiApi.generateWeeklySummary(undefined, goal);
+
+      // Store the summary in the database
+      const updatedSummaries = await goalsApi.addWeeklySummary(
+        goal.id,
+        summary
+      );
+
+      // Update the local state with the new summary
+      setCurrentSummary(summary);
+
+      // Update the goal object with the new summaries
+      setGoal((prev) =>
+        prev
+          ? {
+              ...prev,
+              weekly_summaries: updatedSummaries,
+            }
+          : null
+      );
+    } catch (error) {
+      console.error("Error generating weekly summary:", error);
+      setCurrentSummary({
+        text: "Failed to generate weekly summary. Please try again later.",
+        created_at: new Date().toISOString(),
+      });
+    } finally {
+      setIsGeneratingSummary(false);
     }
   };
 
@@ -399,6 +597,101 @@ export default function GoalDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Weekly Summary */}
+            <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900 dark:text-white">
+                  Weekly Summary
+                </h4>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleGenerateWeeklySummary}
+                  disabled={isGeneratingSummary}
+                >
+                  {isGeneratingSummary ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Weekly Summary"
+                  )}
+                </Button>
+              </div>
+
+              {/* Current Summary (if just generated) */}
+              {currentSummary && (
+                <div className="p-4 mb-4 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex justify-between items-center mb-2">
+                    <h5 className="font-medium text-blue-800 dark:text-blue-200">
+                      Latest Summary
+                    </h5>
+                    <span className="text-sm text-blue-600 dark:text-blue-300">
+                      {format(
+                        new Date(currentSummary.created_at),
+                        "MMM dd, yyyy"
+                      )}
+                      {currentSummary.week_number &&
+                        ` · Week ${currentSummary.week_number}`}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {currentSummary.text}
+                  </p>
+                </div>
+              )}
+
+              {/* Historical Summaries */}
+              {goal?.weekly_summaries && goal.weekly_summaries.length > 0 ? (
+                <div className="space-y-4">
+                  <h5 className="font-medium text-gray-700 dark:text-gray-300">
+                    Previous Summaries
+                  </h5>
+                  <div className="space-y-3">
+                    {[...goal.weekly_summaries]
+                      .sort(
+                        (a, b) =>
+                          new Date(b.created_at).getTime() -
+                          new Date(a.created_at).getTime()
+                      )
+                      .map((summary, index) => (
+                        <div
+                          key={index}
+                          className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <h6 className="font-medium text-gray-800 dark:text-gray-200">
+                              {summary.week_number
+                                ? `Week ${summary.week_number}`
+                                : `Summary ${index + 1}`}
+                            </h6>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {format(
+                                new Date(summary.created_at),
+                                "MMM dd, yyyy"
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            {summary.text}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ) : (
+                !currentSummary && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Click the button above to generate a summary of weekly
+                      progress based on task comments.
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -499,21 +792,6 @@ export default function GoalDetailPage() {
                                     >
                                       <CardContent className="p-4">
                                         <div className="flex items-start gap-3">
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                              handleOpenTaskModal({
-                                                id: task.id,
-                                                title: task.title,
-                                                status: task.status,
-                                              })
-                                            }
-                                            className="mt-1"
-                                          >
-                                            Update Task
-                                          </Button>
-
                                           <div className="flex-1 space-y-2">
                                             <div className="flex items-start justify-between">
                                               <h6 className="font-medium text-gray-900 dark:text-white">
@@ -567,21 +845,38 @@ export default function GoalDetailPage() {
                                                 </div>
                                               </div>
 
-                                              {task.assignee && (
-                                                <div className="flex items-center gap-2">
-                                                  <Avatar className="w-5 h-5">
-                                                    <AvatarFallback className="text-xs">
+                                              <div className="flex items-center gap-2">
+                                                {task.assignee && (
+                                                  <div className="flex items-center gap-2 mr-3">
+                                                    <Avatar className="w-5 h-5">
+                                                      <AvatarFallback className="text-xs">
+                                                        {task.assignee
+                                                          .full_name?.[0] ||
+                                                          task.assignee
+                                                            .email[0]}
+                                                      </AvatarFallback>
+                                                    </Avatar>
+                                                    <span>
                                                       {task.assignee
-                                                        .full_name?.[0] ||
-                                                        task.assignee.email[0]}
-                                                    </AvatarFallback>
-                                                  </Avatar>
-                                                  <span>
-                                                    {task.assignee.full_name ||
-                                                      task.assignee.email}
-                                                  </span>
-                                                </div>
-                                              )}
+                                                        .full_name ||
+                                                        task.assignee.email}
+                                                    </span>
+                                                  </div>
+                                                )}
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    handleOpenTaskModal({
+                                                      id: task.id,
+                                                      title: task.title,
+                                                      status: task.status,
+                                                    })
+                                                  }
+                                                >
+                                                  Update Task
+                                                </Button>
+                                              </div>
                                             </div>
 
                                             {/* Task Comments */}

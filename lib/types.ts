@@ -1,6 +1,12 @@
 export type GoalType = "individual" | "team";
 export type GoalStatus = "not_started" | "in_progress" | "blocked" | "on_track" | "at_risk" | "completed";
 
+export interface WeeklySummary {
+  text: string;
+  created_at: string;
+  week_number?: number;
+}
+
 export interface Goal {
   id: string;
   title: string;
@@ -14,6 +20,7 @@ export interface Goal {
   created_at: string;
   updated_at: string;
   subgoals?: SubGoal[];
+  weekly_summaries?: WeeklySummary[];
 }
 
 export interface SubGoal {

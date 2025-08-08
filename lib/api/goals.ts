@@ -6,6 +6,7 @@ import type {
   GoalType,
   GoalStatus,
   Team,
+  WeeklySummary,
 } from "@/lib/types";
 
 export const goalsApi = {
@@ -255,5 +256,30 @@ export const goalsApi = {
       .eq("user_id", user.id);
 
     return teamMembers?.map((tm) => tm.team_id).join(",") || "";
+  },
+  
+  // Add a weekly summary to a goal
+  async addWeeklySummary(goalId: string, summary: WeeklySummary) {
+    // First get the current goal to access existing summaries
+    const { data: goal, error: fetchError } = await supabase
+      .from("goals")
+      .select("weekly_summaries")
+      .eq("id", goalId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    
+    // Prepare the summaries array (append new summary to existing ones)
+    const weeklySummaries = goal.weekly_summaries ? [...goal.weekly_summaries, summary] : [summary];
+    
+    // Update the goal with new summaries
+    const { error } = await supabase
+      .from("goals")
+      .update({ weekly_summaries: weeklySummaries })
+      .eq("id", goalId);
+
+    if (error) throw error;
+    
+    return weeklySummaries;
   },
 };
