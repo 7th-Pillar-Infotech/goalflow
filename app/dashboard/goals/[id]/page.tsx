@@ -91,8 +91,6 @@ export default function GoalDetailPage() {
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case "in_progress":
         return <PlayCircle className="w-4 h-4 text-blue-600" />;
-      case "in_progress":
-        return <PlayCircle className="w-4 h-4 text-blue-600" />;
       case "blocked":
         return <AlertCircle className="w-4 h-4 text-red-600" />;
       case "at_risk":
