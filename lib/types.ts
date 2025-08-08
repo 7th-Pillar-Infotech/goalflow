@@ -84,6 +84,7 @@ export interface AIGoalSuggestion {
     tasks: {
       title: string;
       description: string;
+      estimated_duration?: string;
     }[];
   }[];
   suggestedTags: string[];

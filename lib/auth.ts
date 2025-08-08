@@ -118,22 +118,7 @@ export const authService = {
         return null;
       }
 
-      // Fetch profile data
-      try {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name, avatar_url, role")
-          .eq("id", user.id)
-          .single();
-
-        return {
-          ...user,
-          profile: profile || undefined,
-        };
-      } catch (profileError) {
-        // Return user even if profile fetch fails
-        return user;
-      }
+      return user;
     } catch (error) {
       return null;
     }

@@ -35,7 +35,11 @@ export const aiApi = {
               "title": "Subgoal title",
               "description": "Subgoal description",
               "tasks": [
-                { "title": "Task title", "description": "Task description" },
+                { 
+                  "title": "Task title", 
+                  "description": "Task description",
+                  "estimated_duration": "Numeric value representing days needed to complete this task"
+                },
                 ...
               ]
             },
@@ -47,6 +51,7 @@ export const aiApi = {
         
         Make the goal SMART (Specific, Measurable, Achievable, Relevant, Time-bound).
         Include 2-3 subgoals, each with 2-4 tasks.
+        For each task, provide an estimated_duration as a numeric value representing the number of days needed to complete the task.
         Suggest 3-5 relevant tags.
         Set a reasonable deadline based on the scope of the goal.
       `;
@@ -106,10 +111,12 @@ export const aiApi = {
               {
                 title: "Research best practices",
                 description: "Find industry standards and best approaches",
+                estimated_duration: "2",
               },
               {
                 title: "Set measurable targets",
                 description: "Define KPIs and success metrics",
+                estimated_duration: "1",
               },
             ],
           },

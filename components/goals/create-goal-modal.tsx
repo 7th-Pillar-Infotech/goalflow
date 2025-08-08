@@ -14,6 +14,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -75,6 +76,7 @@ interface TaskData {
   description: string;
   assigned_to?: string;
   due_date?: string;
+  estimated_duration?: string;
 }
 
 export function CreateGoalModal({
@@ -155,7 +157,16 @@ export function CreateGoalModal({
       form.setValue("description", suggestion.description);
       form.setValue("deadline", suggestion.suggestedDeadline);
 
-      setSubgoals(suggestion.subgoals);
+      // Map the subgoals and ensure estimated_duration is properly handled
+      const mappedSubgoals = suggestion.subgoals.map(subgoal => ({
+        ...subgoal,
+        tasks: subgoal.tasks.map(task => ({
+          ...task,
+          // Ensure estimated_duration is a string (for the number input)
+          estimated_duration: task.estimated_duration?.toString() || ""
+        }))
+      }));
+      setSubgoals(mappedSubgoals);
       setTags(suggestion.suggestedTags);
       setStep("editing");
     } catch (error) {
@@ -657,6 +668,24 @@ export function CreateGoalModal({
                                         subgoalIndex,
                                         taskIndex,
                                         "title",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-xs text-gray-500">
+                                    Estimated Duration
+                                  </label>
+                                  <Input
+                                    placeholder="e.g., 2 days"
+                                    type="number"
+                                    value={task.estimated_duration || ""}
+                                    onChange={(e) =>
+                                      handleUpdateTask(
+                                        subgoalIndex,
+                                        taskIndex,
+                                        "estimated_duration",
                                         e.target.value
                                       )
                                     }
