@@ -22,10 +22,7 @@ function getWeekNumber(date: Date, goalCreatedAt?: string): number {
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey:
-    process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
-    // If you're seeing this in the code, replace with your actual API key in .env.local
-    "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",
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
 });
 
@@ -77,7 +74,7 @@ export const aiApi = {
 
       // Call OpenAI API
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // Using a more widely available model
+        model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
