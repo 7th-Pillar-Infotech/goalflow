@@ -100,7 +100,7 @@ function GoalProgressCard({
   const statusConfig = {
     in_progress: {
       color: "bg-emerald-500",
-      text: "On Track",
+      text: "In Progress",
       variant: "default" as const,
     },
     at_risk: {
@@ -117,12 +117,6 @@ function GoalProgressCard({
       color: "bg-gray-500",
       text: "Not Started",
       variant: "outline" as const,
-    },
-    // Add support for other statuses from our Goal type
-    in_progress: {
-      color: "bg-blue-500",
-      text: "In Progress",
-      variant: "default" as const,
     },
     blocked: {
       color: "bg-red-500",
