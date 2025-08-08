@@ -175,6 +175,29 @@ export const goalsApi = {
     if (error) throw error;
   },
 
+  // Update task status with comment
+  async updateTaskWithComment(taskId: string, status: GoalStatus, comment: string) {
+    // First get the current task to access existing comments
+    const { data: task, error: fetchError } = await supabase
+      .from("tasks")
+      .select("comments")
+      .eq("id", taskId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    
+    // Prepare the comments array (append new comment to existing ones)
+    const comments = task.comments ? [...task.comments, comment] : [comment];
+    
+    // Update the task with new status and comments
+    const { error } = await supabase
+      .from("tasks")
+      .update({ status, comments })
+      .eq("id", taskId);
+
+    if (error) throw error;
+  },
+
   // Delete a goal (cascades to subgoals and tasks)
   async deleteGoal(goalId: string) {
     const { error } = await supabase.from("goals").delete().eq("id", goalId);

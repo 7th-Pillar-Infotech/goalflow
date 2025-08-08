@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Accordion,
@@ -27,6 +26,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UpdateTaskModal } from "@/components/tasks/update-task-modal";
+import { TaskComments } from "@/components/tasks/task-comments";
 import {
   ArrowLeft,
   Calendar,
@@ -52,6 +53,11 @@ export default function GoalDetailPage() {
   const [goal, setGoal] = useState<Goal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<{
+    id: string;
+    title: string;
+    status: GoalStatus;
+  } | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -80,6 +86,10 @@ export default function GoalDetailPage() {
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case "on_track":
         return <PlayCircle className="w-4 h-4 text-blue-600" />;
+      case "in_progress":
+        return <PlayCircle className="w-4 h-4 text-blue-600" />;
+      case "blocked":
+        return <AlertCircle className="w-4 h-4 text-red-600" />;
       case "at_risk":
         return <AlertCircle className="w-4 h-4 text-orange-600" />;
       default:
@@ -99,6 +109,16 @@ export default function GoalDetailPage() {
         variant: "secondary" as const,
         text: "On Track",
         color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+      },
+      in_progress: {
+        variant: "secondary" as const,
+        text: "In Progress",
+        color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+      },
+      blocked: {
+        variant: "destructive" as const,
+        text: "Blocked",
+        color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
       },
       at_risk: {
         variant: "destructive" as const,
@@ -146,6 +166,32 @@ export default function GoalDetailPage() {
       await loadGoal(); // Refresh the goal data
     } catch (error) {
       console.error("Error updating task status:", error);
+    }
+  };
+
+  const handleOpenTaskModal = (task: {
+    id: string;
+    title: string;
+    status: GoalStatus;
+  }) => {
+    setSelectedTask(task);
+  };
+
+  const handleCloseTaskModal = () => {
+    setSelectedTask(null);
+  };
+
+  const handleUpdateTaskWithComment = async (
+    taskId: string,
+    status: GoalStatus,
+    comment: string
+  ) => {
+    try {
+      await goalsApi.updateTaskWithComment(taskId, status, comment);
+      await loadGoal(); // Refresh the goal data
+    } catch (error) {
+      console.error("Error updating task with comment:", error);
+      throw error;
     }
   };
 
@@ -453,18 +499,20 @@ export default function GoalDetailPage() {
                                     >
                                       <CardContent className="p-4">
                                         <div className="flex items-start gap-3">
-                                          <Checkbox
-                                            checked={
-                                              task.status === "completed"
-                                            }
-                                            onCheckedChange={(checked) =>
-                                              handleTaskStatusChange(
-                                                task.id,
-                                                checked as boolean
-                                              )
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleOpenTaskModal({
+                                                id: task.id,
+                                                title: task.title,
+                                                status: task.status,
+                                              })
                                             }
                                             className="mt-1"
-                                          />
+                                          >
+                                            Update Task
+                                          </Button>
 
                                           <div className="flex-1 space-y-2">
                                             <div className="flex items-start justify-between">
@@ -535,6 +583,11 @@ export default function GoalDetailPage() {
                                                 </div>
                                               )}
                                             </div>
+
+                                            {/* Task Comments */}
+                                            <TaskComments
+                                              comments={task.comments}
+                                            />
                                           </div>
                                         </div>
                                       </CardContent>
@@ -574,6 +627,18 @@ export default function GoalDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Task Update Modal */}
+      {selectedTask && (
+        <UpdateTaskModal
+          isOpen={!!selectedTask}
+          onClose={handleCloseTaskModal}
+          taskId={selectedTask.id}
+          taskTitle={selectedTask.title}
+          currentStatus={selectedTask.status}
+          onUpdateTask={handleUpdateTaskWithComment}
+        />
+      )}
     </DashboardLayout>
   );
 }

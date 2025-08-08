@@ -1,5 +1,5 @@
 export type GoalType = "individual" | "team";
-export type GoalStatus = "not_started" | "on_track" | "at_risk" | "completed";
+export type GoalStatus = "not_started" | "in_progress" | "blocked" | "on_track" | "at_risk" | "completed";
 
 export interface Goal {
   id: string;
@@ -44,6 +44,7 @@ export interface Task {
   due_date?: string;
   created_at: string;
   updated_at: string;
+  comments?: string[];
   assignee?: {
     id: string;
     full_name: string;
